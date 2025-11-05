@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitor de Energía Solar - Tiempo Real</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Sistema de Monitoreo de Energía Solar</h1>
+            <p>Monitoreo en tiempo real del panel solar con ESP32</p>
+            <div class="connection-status">
+                <div class="status-indicator">
+                    <div class="indicator" id="connection-indicator"></div>
+                    <span id="connection-text">Desconectado</span>
+                </div>
+                <div class="last-update" id="last-update">Última actualización: --</div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="widgets-row">
+            <!-- Tarjeta de Potencia Actual -->
+            <div class="card">
+                <h2>Potencia Actual</h2>
+                <div class="data-display">
+                    <div class="value" id="current-power">0.0 W</div>
+                    <div class="label">Salida del panel solar</div>
+                </div>
+                <div class="status-indicator">
+                    <div class="indicator active"></div>
+                    <span>ESP32 Conectado</span>
+                </div>
+            </div>
+
+            <!-- Tarjeta de Rendimiento -->
+            <div class="card">
+                <h2>Rendimiento</h2>
+                <div class="data-display">
+                    <div class="value" id="performance">0%</div>
+                    <div class="label">Eficiencia del Sistema</div>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress" id="performance-bar"></div>
+                </div>
+            </div>
+
+            <!-- Tarjeta de Irradiación -->
+            <div class="card">
+                <h2>Irradiación Solar</h2>
+                <div class="data-display">
+                    <div class="value" id="irradiation">0.0 W/m²</div>
+                    <div class="label">Intensidad de luz en panel</div>
+                </div>
+                <div class="irradiation-indicator">
+                    <div class="sun-icon">
+                        <svg viewBox="0 0 24 24" width="36" height="36">
+                            <circle cx="12" cy="12" r="5" fill="#F39C12"/>
+                            <g stroke="#F39C12" stroke-width="2" stroke-linecap="round">
+                                <line x1="12" y1="3" x2="12" y2="1"/>
+                                <line x1="12" y1="23" x2="12" y2="21"/>
+                                <line x1="5.64" y1="5.64" x2="4.22" y2="4.22"/>
+                                <line x1="19.78" y1="19.78" x2="18.36" y2="18.36"/>
+                                <line x1="3" y1="12" x2="1" y2="12"/>
+                                <line x1="23" y1="12" x2="21" y2="12"/>
+                                <line x1="5.64" y1="18.36" x2="4.22" y2="19.78"/>
+                                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                            </g>
+                        </svg>
+                    </div>
+                    <div class="irradiation-level">
+                        <div class="level-bar">
+                            <div class="level-fill" id="irradiation-level"></div>
+                        </div>
+                        <div class="level-labels">
+                            <span>Baja</span>
+                            <span>Media</span>
+                            <span>Alta</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tarjeta de Temperatura del Panel -->
+            <div class="card">
+                <h2>Temperatura</h2>
+                <div class="data-display">
+                    <div class="value" id="panel-temperature">0.0 °C</div>
+                    <div class="label">Sensor DHT11</div>
+                </div>
+                <div class="temperature-indicator">
+                    <div class="thermometer-icon">
+                        <svg viewBox="0 0 24 24" width="48" height="48">
+                            <path fill="#e74c3c" d="M12,22A5,5 0 0,1 7,17A5,5 0 0,1 12,12A5,5 0 0,1 17,17A5,5 0 0,1 12,22M12,4A4,4 0 0,1 16,8V12A4,4 0 0,1 12,16A4,4 0 0,1 8,12V8A4,4 0 0,1 12,4M14,5.5A2,2 0 0,0 12,3.5A2,2 0 0,0 10,5.5V8H14V5.5Z" />
+                        </svg>
+                    </div>
+                    <div class="temperature-level">
+                        <div class="level-bar">
+                            <div class="level-fill" id="temperature-level"></div>
+                        </div>
+                        <div class="level-labels">
+                            <span>Frío</span>
+                            <span>Óptimo</span>
+                            <span>Caliente</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tarjeta de Humedad -->
+            <div class="card">
+                <h2>Humedad</h2>
+                <div class="data-display">
+                    <div class="value" id="humidity">0 %</div>
+                    <div class="label">Sensor DHT11</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráfico -->
+        <div class="full-width-chart">
+            <div class="card chart-card">
+                <h2>Irradiación Solar - Tiempo Real</h2>
+                <div class="chart-container">
+                    <canvas id="irradiation-chart"></canvas>
+                </div>
+                <div class="chart-footer">
+                    <div class="daily-summary">
+                        <div class="summary-item">
+                            <span class="summary-label">Máxima:</span>
+                            <span class="summary-value" id="max-irradiation">0 W/m²</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Promedio:</span>
+                            <span class="summary-value" id="avg-irradiation">0 W/m²</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Actual:</span>
+                            <span class="summary-value" id="current-irradiation">0 W/m²</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Tendencia:</span>
+                            <span class="summary-value" id="trend">Estable</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>Sistema de Monitoreo de Energía Solar con ESP32 &copy; 2025</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
